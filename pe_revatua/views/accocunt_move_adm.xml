@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo><data>
+    <!-- list -->
+        <record model="ir.ui.view" id="revatua_account_move_adm_list">
+            <field name="name">revatua.account.move.adm.list</field>
+            <field name="model">account.move.adm</field>
+            <field name="groups_id" eval="[(6, 0, [ref('pe_revatua.group_revatua_users') ])]"/>
+            <field name="arch" type="xml">
+                <tree decoration-success="state == 'invoiced'" string="Facture ADM">
+                    <field name="name"/>
+                    <field name="partner_id"/>
+                    <field name="start_date"/>
+                    <field name="end_date"/>
+                    <field name="state"/>
+                </tree>
+            </field>
+        </record>
+    <!-- form -->
+        <record model="ir.ui.view" id="revatua_account_move_adm_form">
+            <field name="name">revatua.account.move.adm.form</field>
+            <field name="model">account.move.adm</field>
+            <field name="groups_id" eval="[(6, 0, [ref('pe_revatua.group_revatua_users') ])]"/>
+            <field name="arch" type="xml">
+                <form string="Facture ADM">
+                    <header>
+                        <button name="action_confirm_adm" id="action_confirm" string="Confirmé" class="btn-primary" type="object" attrs="{'invisible': [('state', '!=', 'draft')]}"/>
+                        <field name="state" widget="statusbar" options="{'clickable': '1'}"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="partner_id" attrs="{'readonly':[('state','=','done')]}"/>
+                                <field name="currency_id" attrs="{'readonly':[('state','=','done')]}"/>
+                            </group>
+                            <group>
+                                <field name="start_date" attrs="{'readonly':[('state','=','done')]}"/>
+                                <field name="end_date" attrs="{'readonly':[('state','=','done')]}"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Détails">
+                                <field name="product_line_ids" widget="section_and_note_one2many" attrs="{'readonly':[('state','=','done')]}">
+                                    <tree create="false" delete="false">
+                                        <field name="sequence" invisible="1"/>
+                                        <field name="display_type" invisible="1"/>
+                                        <field name="currency_id" optional="hide"/>
+                                        <field name="product_id" optional="show" string="Article"/>
+                                        <field name="name" widget="section_and_note_text" optional="show" string="Description"/>
+                                        <field name="r_volume" optional="show" string="Vol(m³)"/>
+                                        <field name="r_weight" optional="show" string="Poid(T)"/>
+                                        <field name="quantity" optional="show" string="Qté"/>
+                                        <field name="price_subtotal" optional="show" string="Total HT"/>
+                                        <field name="tax_id" widget="many2many_tags" readonly="1" optional="hide" string="Taxes"/>
+                                        <field name="tarif_terrestre" optional="hide" string="Terrestre" sum="Terrestre"/>
+                                        <field name="tarif_maritime" optional="show" string="Maritime" sum="Maritime"/>
+                                        <field name="tarif_rpa" optional="show" string="RPA" sum="RPA"/>
+                                        <field name="price_total" optional="show" string="Total TTC"/>
+                                    </tree>
+                                </field>
+                                <group name="note_group" col="6" class="mt-2 mt-md-0" style="padding-top:10px">
+                                    <group colspan="4">
+                                        <field name="note_adm" class="oe-bordered-editor" nolabel="1" placeholder="Notes..."/>
+                                    </group>
+                                    <group class="oe_subtotal_footer oe_right" colspan="2" name="sale_total">
+                                        <field name='total_ht' />
+                                        <field name='total_rpa' />
+                                        <field name='total_ttc' style="font-weight: bold;"/>
+                                    </group>
+                                    <div class="oe_clear"/>
+                                </group>
+                            </page>
+                            <page string="Factures">
+                                <field name="invoice_line_ids" context="{'search_default_posted':1}" domain="[('is_adm_invoice','=',True),('adm_group_id','=',False)]"  attrs="{'readonly':[('state','=','done')]}">
+                                    <tree default_order='invoice_date asc'>
+                                        <field name="name" decoration-bf="1" optional="show"/>
+                                        <field name="invoice_partner_display_name" string='Administration' optional="show"/>
+                                        <field name="invoice_date" optional="show"/>
+                                        <field name="amount_untaxed_signed" string="Total HT" sum="Total HT" optional="show"/>
+                                        <field name="amount_tax_signed" string="Tax" sum="Total" optional="hide"/>
+                                        <field name="amount_total_signed" string="Total TTC" sum="Total TTC" decoration-bf="1" optional="show"/>
+                                        <field name="amount_total_in_currency_signed" string="Total en devise" groups="base.group_multi_currency" optional="hide"/>
+                                        <field name="currency_id" groups="base.group_multi_currency" optional="hide"/>
+                                        <field name="payment_state" widget="badge" decoration-danger="payment_state == 'not_paid'" decoration-warning="payment_state in ('partial', 'in_payment')" decoration-success="payment_state in ('paid', 'reversed')" optional="show"/>
+                                        <field name="state" widget="badge" decoration-success="state == 'posted'" decoration-info="state == 'draft'" optional="show"/>
+                                    </tree>
+                                </field>
+                            </page>
+                            <page string='MT' groups="base.group_no_one">
+                                <field name="invoice_ids"/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+    
+</data></odoo>

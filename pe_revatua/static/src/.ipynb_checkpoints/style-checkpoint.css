@@ -1,0 +1,29 @@
+/* Style des colonnes tree view  */
+[data-name="product_uom_qty"] {
+    width: 48px !important;
+}
+[data-name="r_volume"] {
+    width: 65px !important;
+}
+[data-name="r_weight"] {
+    width: 68px !important;
+}
+[data-name="price_unit"] {
+    width: 68px !important;
+}
+[data-name="discount"] {
+    width: 58px !important;
+}
+[data-name="tax_id"] {
+    width: 50px !important;
+}
+[data-name="tarif_terrestre"] {
+    width: 80px !important;
+}
+[data-name="tarif_maritime"] {
+    width: 70px !important;
+}
+[data-name="tarif_rpa"] {
+    width: 56px !important;
+}
+

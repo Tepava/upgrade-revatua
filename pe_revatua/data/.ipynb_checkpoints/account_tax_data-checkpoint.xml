@@ -1,0 +1,21 @@
+<odoo><data noupdate="1">
+    <!-- Les fichiers data permettent de créer des records -->
+        <!-- Groupe de tax RPA -->
+        <record id="revatua_rpa_group" model="account.tax.group">
+            <field name="name">RPA</field>
+            <field name="sequence" eval="99"/>
+        </record>
+        
+        <!-- Taxes RPA -->
+        <record id="revatua_rpa" model="account.tax">
+            <field name="name">RPA</field>
+            <field name="description">RPA</field>
+            <field name="type_tax_use">sale</field>
+            <field name="tax_group_id" eval="revatua_rpa_group"/>
+            <field name="amount_type">fixed</field>
+            <field name="amount">0</field>
+            <field name ="is_base_affected" eval="False"/>
+            <field name="company_id" eval="2"/>
+        </record> 
+    
+</data></odoo>

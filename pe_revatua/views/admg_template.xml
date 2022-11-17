@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo><data>
+        <template id="revatua_admg">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="o">
+                    <t t-call="web.external_layout">
+                        <t t-set="o" t-value="o.with_context(lang=o.partner_id.lang)"/>
+                        <t t-set="partner" t-value="o.partner_id or False"/>
+                        <!-- adress Administration -->
+                        <t t-set="address">
+                            <address t-field="o.partner_id" t-options="{&quot;widget&quot;: &quot;contact&quot;, &quot;fields&quot;: [&quot;address&quot;, &quot;name&quot;], &quot;no_marker&quot;: True}"/>
+                            <div t-if="o.partner_id.vat" class="mt16">
+                                <t t-if="o.company_id.account_fiscal_country_id.vat_label" t-esc="o.company_id.account_fiscal_country_id.vat_label" id="inv_tax_id_label"/>
+                                <t t-else="">Tax ID</t>: <span t-field="o.partner_id.vat"/></div>
+                        </t>
+                        
+                        <div class="page">
+                            <!-- Haut de talbleau -->
+                            <h2>
+                                <span t-if="o.state == 'draft'">Brouillon </span>
+                                <span t-if="o.state != 'draft'">Facture </span>
+                                <span t-if="o.name != '/'" t-field="o.name"/>
+                            </h2>    
+                            
+                            <div id="informations" class="row mt32 mb32">
+                                <div class="col-auto col-3 mw-100 mb-2" t-if="o.start_date" name="start_date">
+                                    <strong>Du:</strong>
+                                    <p class="m-0" t-field="o.start_date"/>
+                                </div>
+                                <div class="col-auto col-3 mw-100 mb-2" t-if="o.end_date" name="end_date">
+                                    <strong>Au:</strong>
+                                    <p  class="m-0" t-field="o.end_date"/>
+                                </div>
+                            </div>
+                            <!-- Tableau ligne d'article -->
+                            <table class="table table-sm o_main_table" name="invoice_line_table">
+                            <thead>
+                                <tr>
+                                    <th name="th_description" class="text-left"><span>Article</span></th>
+                                    <th name="th_priceunit" t-attf-class="text-right {{ 'd-none d-md-table-cell' if report_type == 'html' else '' }}"><span>Maritime</span></th>
+                                    <th name="th_price_unit" t-attf-class="text-right {{ 'd-none d-md-table-cell' if report_type == 'html' else '' }}"><span>RPA</span></th>
+                                    <th name="th_taxes" t-attf-class="text-right {{ 'd-none d-md-table-cell' if report_type == 'html' else '' }}"><span>Total TTC</span></th>
+                                </tr>
+                            </thead>
+                            <tbody class="admg_tbody">
+                                <t t-set="current_subtotal" t-value="0"/>
+                                <t t-set="lines" t-value="o.product_line_ids"/>
+    
+                                <t t-foreach="lines" t-as="line">
+                                    <t t-set="current_subtotal" t-value="current_subtotal + line.price_total" groups="account.group_show_line_subtotals_tax_included"/>
+                                    <t t-set="current_subtotal" t-value="current_subtotal + line.price_subtotal" groups="account.group_show_line_subtotals_tax_excluded"/>
+                                    <tr t-att-class="'bg-200 font-weight-bold o_line_section' if line.display_type == 'line_section' else 'font-italic o_line_note' if line.display_type == 'line_note' else ''">
+                                        <t t-if="not line.display_type" name="account_invoice_line_accountable">
+                                            <td name="account_invoice_line_name"><span t-field="line.name" t-options="{'widget': 'text'}"/></td>
+                                            <td class="text-right">
+                                                <span t-field="line.tarif_maritime"/>
+                                            </td>
+                                            <td class="text-right">
+                                                <span t-field="line.tarif_rpa"/>
+                                            </td>
+                                            <td class="text-right o_price_total">
+                                                <span class="text-nowrap" t-field="line.price_total" />
+                                            </td>
+                                        </t>
+                                        <t t-if="line.display_type == 'line_section'">
+                                            <td colspan="99">
+                                                <span t-field="line.name" t-options="{'widget': 'text'}"/>
+                                            </td>
+                                            <t t-set="current_section" t-value="line"/>
+                                            <t t-set="current_subtotal" t-value="0"/>
+                                        </t>
+                                    </tr>
+                                </t>
+                            </tbody>
+                            </table>
+                            <!-- Tableau total -->
+                            <div class="clearfix">
+                                <div id="total" class="row">
+                                    <div t-attf-class="#{'col-6' if report_type != 'html' else 'col-sm-7 col-md-6'} ml-auto">
+                                        <table class="table table-sm" style="page-break-inside: avoid;">
+                                            <!-- Montant Total -->
+                                            <tr class="border-black o_total">
+                                                <td><strong><span>Total Maritime</span></strong></td>
+                                                <td class="text-right" ><span t-field="o.total_ht"/></td>
+                                            </tr>
+                                            <!-- Total RPA -->
+                                            <tr>
+                                                <td><span>Total RPA</span></td>
+                                                <td class="text-right" ><span t-att-class="oe_subtotal_footer_separator" t-field="o.total_rpa" /></td>
+                                            </tr>
+                                            <tr class="border-black o_total">
+                                                <td><strong><span>Total TTC</span></strong></td>
+                                                <td class="text-right" ><span t-field="o.total_ttc"/></td>
+                                            </tr>
+                                            
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </t>
+                </t>
+            </t>
+        </template>
+</data></odoo>

@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo><data>
+        <template id="revatua_sale_order_inherit" inherit_id="sale.report_saleorder_document">
+        <!-- Volume -->
+            <xpath expr="/t/t/div/table/thead/tr/th[1]" position="after">
+                    <th t-if="doc.company_id.id == 2">
+                        <span>Vol(m³3)</span>
+                    </th>
+            </xpath>
+            <xpath expr="/t/t/div/table/tbody/t[2]/tr/t[1]/td[1]" position="after">
+                <td  t-if="doc.company_id.id == 2">
+                    <span t-field="line.r_volume"/>
+                </td>
+            </xpath>
+            <xpath expr="/t/t/div/table/tbody/t[2]/t[3]/tr/td" position="attributes">
+                <attribute name="colspan">100</attribute>
+            </xpath>
+        <!-- Poids -->
+            <xpath expr="/t/t/div/table/thead/tr/th[2]" position="after">
+            <th  t-if="doc.company_id.id == 2">
+                <span>Poids(T)</span>
+            </th>
+            </xpath>
+            <xpath expr="/t/t/div/table/tbody/t[2]/tr/t[1]/td[2]" position="after">
+                <td  t-if="doc.company_id.id == 2">
+                    <span t-field="line.r_weight"/>
+                </td>
+            </xpath>
+            <xpath expr="/t/t/div/table/tbody/t[2]/t[3]/tr/td" position="attributes">
+                <attribute name="colspan">101</attribute>
+            </xpath>
+        <!-- Bloc de text -->
+            <xpath expr="/t/t/div/p[1]" position="after">
+                <div class="row"  t-if="doc.company_id.id == 2">
+                    <div class="col">
+                        <span style="font-weight: bolder;">Information additionnelles</span>
+                    </div>
+                </div>
+            </xpath>
+            <xpath expr="/t/t/div/div[7]" position="after">
+                <div  t-if="doc.company_id.id == 2">
+                    <span style=" font-size: 13px">
+                            La TVA sur la part maritime est de 0% alors que sur la part terrestre, elle est de 13% du prix HT terrestre. La part terrestre et la part maritime correspondent respectivement à 60% et à 40% du total HT.
+                    </span>
+                </div>
+            </xpath>
+        
+        <!-- Terrestre -->
+            <xpath expr="/t/t/div/table/thead/tr/th[8]" position="after">
+                <th  t-if="doc.company_id.id == 2">
+                    <span>Terrestre</span>
+                </th>
+            </xpath>
+            <xpath expr="/t/t/div/table/tbody/t[2]/tr/t[1]/td[8]" position="after">
+                <td  t-if="doc.company_id.id == 2">
+                    <span t-field="line.tarif_terrestre"/>
+                </td>
+            </xpath>
+            <xpath expr="/t/t/div/table/tbody/t[2]/t[3]/tr/td" position="attributes">
+                <attribute name="colspan">102</attribute>
+            </xpath>
+        <!-- Maritime -->
+            <xpath expr="/t/t/div/table/thead/tr/th[9]" position="after">
+                <th  t-if="doc.company_id.id == 2">
+                    <span>Maritime</span>
+                </th>
+            </xpath>
+            <xpath expr="/t/t/div/table/tbody/t[2]/tr/t[1]/td[9]" position="after">
+                <td  t-if="doc.company_id.id == 2">
+                    <span t-field="line.tarif_maritime"/>
+                </td>
+            </xpath>
+            <xpath expr="/t/t/div/table/tbody/t[2]/t[3]/tr/td" position="attributes">
+                <attribute name="colspan">103</attribute>
+            </xpath>
+        <!-- RPA -->
+            <xpath expr="/t/t/div/table/thead/tr/th[10]" position="after">
+                <th  t-if="doc.company_id.id == 2">
+                    <span>RPA</span>
+                </th>
+            </xpath>
+            <xpath expr="/t/t/div/table/tbody/t[2]/tr/t[1]/td[10]" position="after">
+                <td  t-if="doc.company_id.id == 2">
+                    <span t-field="line.tarif_rpa"/>
+                </td>
+            </xpath>
+            <xpath expr="/t/t/div/table/tbody/t[2]/t[3]/tr/td" position="attributes">
+                <attribute name="colspan">104</attribute>
+            </xpath>
+        <!-- Ajustement -->
+            <xpath expr="/t/t/div/h2" position="attributes">
+                <attribute name="style" separator=";" add="margin-top:20px"/>
+            </xpath>
+            <xpath expr="/t[1]/t[1]/div[1]/div[2]/div[2]/p[1]" position="attributes">
+                <attribute name="t-options-widget">"date"</attribute>
+            </xpath>
+            <xpath expr="/t/t/div/table/thead/tr/th[7]" position="attributes">
+                <attribute name="style" separator=";" add="width:87px" remove="width:85px"/>
+            </xpath>
+            <xpath expr="/t/t/div/table/thead/tr/th[8]/span[1]" position="replace">
+                <span groups="account.group_show_line_subtotals_tax_excluded" studio_groups="[{&quot;id&quot;: 23, &quot;name&quot;: &quot;Affichage des taxes B2B&quot;, &quot;display_name&quot;: &quot;Technique / Affichage des taxes B2B&quot;}]">Total HT</span>
+            </xpath>
+            <!-- Clients -->
+            <xpath expr="/t/t/t[3]" position="replace">
+                <!-- aremiti -->
+                <t t-if="doc.company_id.id == 2">
+                    <div class="row" style="padding-bottom:20px">
+                        <div class="col-4" name="div_incoming_address"><!--t-options='{&quot;phone_icons&quot;: True}-->
+                            <span><strong>Client:</strong></span>
+                            <div t-field="doc.partner_id" t-options="{&quot;widget&quot;: &quot;contact&quot;, &quot;fields&quot;: [&quot;address&quot;, &quot;name&quot;], &quot;no_marker&quot;: True}"/>
+                        </div>
+                        <div class="col-4" name="div_incoming_address" t-if='doc.contact_expediteur'><!--t-options='{&quot;phone_icons&quot;: True}-->
+                            <span><strong>Expéditeur:</strong></span>
+                            <div t-field="doc.contact_expediteur.name"/>
+                            <div>
+                                <span>Tél:</span>
+                                <t t-if="doc.tel_expediteur">
+                                    <span t-field="doc.tel_expediteur"/>
+                                </t>
+                                <t t-if="not doc.tel_expediteur and doc.mobil_expediteur">
+                                    <span t-field="doc.mobil_expediteur"/>
+                                </t>  
+                            </div>
+                            <div>
+                                <span t-field="doc.ile_recup"/>
+                                <span> - </span>
+                                <span t-field="doc.commune_recup"/>
+                            </div>
+                        </div>
+                        <div class="col-4" name="div_incoming_address" t-if='doc.contact_dest'>
+                            <span><strong>Destinataire:</strong></span>
+                            <div t-field="doc.contact_dest.name" />
+                            <div>
+                                <span>Tél:</span>
+                                <t t-if="doc.tel_dest">
+                                    <span t-field="doc.tel_dest"/>
+                                </t>
+                                <t t-if="not doc.tel_dest and doc.dest">
+                                    <span t-field="doc.dest"/>
+                                </t>  
+                            </div>
+                            <div t-if="doc.ile_dest and doc.commune_dest">
+                                <span t-field="doc.ile_dest"/>
+                                <span> - </span>
+                                <span t-field="doc.commune_dest"/>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+                <t t-else="" t-set="address">
+                    <div t-field="doc.partner_id" t-options="{&quot;widget&quot;: &quot;contact&quot;, &quot;fields&quot;: [&quot;address&quot;, &quot;name&quot;], &quot;no_marker&quot;: True}"/>
+                    <p t-if="doc.partner_id.vat"><t t-esc="doc.company_id.account_fiscal_country_id.vat_label or 'Tax ID'"/>: <span t-field="doc.partner_id.vat"/></p>
+                </t>
+            </xpath>
+        </template>
+</data></odoo>

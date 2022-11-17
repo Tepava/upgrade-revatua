@@ -1,0 +1,45 @@
+<odoo><data noupdate="1">
+    <!-- Les fichiers data permettent de créer des records -->
+        <!-- UOM Categories-->
+        <record id="revatua_udm_category" model="uom.category">
+            <field name="name">Revatua</field>
+        </record>
+    
+        <!-- UOM.UOM -->
+        <!-- ref -->
+        <record id="revatua_udm_ref" model="uom.uom">
+            <field name="category_id" ref="pe_revatua.revatua_udm_category"/>
+            <field name="name">ref</field>
+            <field name="uom_type">reference</field>
+            <field name="factor_inv" eval='1'/>
+            <field name="rounding" eval='0.01'/>
+        </record>
+    
+        <!-- m³ -->
+        <record id="revatua_udm_mcube" model="uom.uom">
+            <field name="category_id" ref="pe_revatua.revatua_udm_category"/>
+            <field name="name">m3</field>
+            <field name="uom_type">bigger</field>
+            <field name="factor_inv" eval='1000'/>
+            <field name="rounding" eval='0.01'/>
+        </record>
+    
+        <!-- T -->
+        <record id="revatua_udm_tons" model="uom.uom">
+            <field name="category_id" ref="pe_revatua.revatua_udm_category"/>
+            <field name="name">T</field>
+            <field name="uom_type">bigger</field>
+            <field name="factor_inv" eval='1000'/>
+            <field name="rounding" eval='0.01'/>
+        </record>
+    
+        <!-- T/m³ -->
+        <record id="revatua_udm_mcube_tons" model="uom.uom">
+            <field name="category_id" ref="pe_revatua.revatua_udm_category"/>
+            <field name="name">T/m³</field>
+            <field name="uom_type">bigger</field>
+            <field name="factor_inv" eval='1000'/>
+            <field name="rounding" eval='0.01'/>
+        </record>
+    
+</data></odoo>

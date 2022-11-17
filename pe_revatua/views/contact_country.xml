@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo><data>
+    
+    <record id="pe_revatua_res_country_state_inherit" model="ir.ui.view">
+        <field name="name">res.country_state_inherit</field>
+        <field name="model">res.country.state</field>
+        <field name="inherit_id" ref="base.view_country_state_tree" />
+        <field name="arch" type="xml">
+            <xpath expr="//tree[1]/field[@name='name']" position="after">
+                <field optional="show" name="commune_ids" string="Communes" widget="many2many_tags"/>
+            </xpath>
+        </field>
+    </record>
+
+</data></odoo>

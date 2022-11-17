@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo><data>
+    
+        <!-- rend visible les champs pour le groups revatua / users -->
+        <record id="product_template_form_aremiti_only" model="ir.ui.view">
+            <field name="name">product.template.form.aremiti.only</field>
+            <field name="model">product.template</field>
+            <field name="inherit_id" ref="product.product_template_form_view" />
+            <field name="groups_id" eval="[(6, 0, [ref('pe_revatua.group_revatua_users') ])]"/>
+            <field name="arch" type="xml">
+                <!-- button ADM -->
+                <xpath expr="//field[@name='purchase_ok']/.." position="after">
+                    <span class="d-inline-block">
+                        <field name="check_adm"/>
+                        <label for="check_adm"/>
+                    </span>
+                </xpath>
+                <!-- Famille d'article -->
+                <xpath expr="//field[@name='company_id']" position="before">
+                    <field name="famille_produit"/>
+                </xpath>
+                <xpath expr="//field[@name='uom_po_id']" position="after">
+                    <field name="contact_adm" attrs="{'invisible': [['check_adm','=',False]]}" string="Département (ADM)" domain="[['id_adm','=',True]]"/>
+                </xpath>
+                <!-- Champs tarif Revatua -->
+                <xpath expr="//notebook/page[1]/group[1]" position="after">
+                    <group>
+                        <group string="Normal">
+                            <field name="tarif_normal" class="oe_inline" widget='monetary'/>
+                            <field name="tarif_minimum" class="oe_inline" widget='monetary'/>
+                        </group>
+                        <group string="Maritime">
+                            <field name="tarif_maritime" class="oe_inline" widget='monetary'/>
+                            <field name="tarif_minimum_maritime" class="oe_inline" widget='monetary'/>
+                        </group>
+                        <group string="Terrestre">
+                            <field name="tarif_terrestre" class="oe_inline" widget='monetary'/>
+                            <field name="tarif_minimum_terrestre" class="oe_inline" widget='monetary'/>
+                        </group>
+                        <group string="RPA">
+                            <field name="tarif_rpa" class="oe_inline" widget='monetary'/>
+                            <field name="tarif_minimum_rpa" class="oe_inline" widget='monetary'/>
+                            <field name="check_adm" invisible="1"/>
+                        </group>
+                    </group>
+                </xpath>
+            </field>
+        </record>
+
+</data></odoo>        

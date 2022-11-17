@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo><data>
+    
+        <!-- rend visible champs pour groups donner -->
+        <record id="revatua_stock_picking_form" model="ir.ui.view">
+            <field name="name">revatua.stock.picking.form</field>
+            <field name="model">stock.picking</field>
+            <field name="inherit_id" ref="stock.view_picking_form" />
+            <field name="groups_id" eval="[(6, 0, [ref('pe_revatua.group_revatua_users') ])]"/>
+            <field name="arch" type="xml">
+            <!-- Formulaire -->
+                <!-- Date de voyage -->
+                <xpath expr="//field[@name='location_id']" position="after">
+                    <field name="travel_date"/>
+                </xpath>
+                <!-- Champ recup/destinataire -->
+                <xpath expr="//field[@name='owner_id']/../.." position="after">
+                    <group name="detail_livraison" attrs='{"invisible": [["commune_recup","=",False]]}'>
+                        <group name="lieu_recuperation" string="Lieu de récupération">
+                            <field name="commune_recup"/>
+                            <field name="ile_recup"/>
+                            <field name="contact_expediteur"/>
+                            <field name="tel_expediteur" attrs='{"invisible": ["&amp;",["tel_expediteur","=",False],["mobil_expediteur","!=",False]]}'/>
+                            <field name="mobil_expediteur" attrs='{"invisible": ["|",["tel_expediteur","!=",False],["mobil_expediteur","=",False]]}'/>
+                        </group>
+                        <group name="lieu_destinataire" string="Destinataire" attrs='{"invisible": [["commune_dest","=",False]]}'>
+                            <field name="commune_dest"/>
+                            <field name="ile_dest"/>
+                            <field name="contact_dest"/>
+                            <field name="tel_dest" attrs='{"invisible": ["&amp;",["tel_dest","=",False],["mobil_dest","!=",False]]}'/>
+                            <field name="mobil_dest" attrs='{"invisible": ["|",["tel_dest","!=",False],["mobil_dest","=",False]]}'/>
+                        </group>
+                    </group>
+                </xpath>
+                <!-- Lien Commandes (Autres informations) -->
+                <xpath expr="//field[@name='carrier_id']" position="after">
+                    <field name="sale_id"/>
+                </xpath>
+            <!-- Opérations -->
+                <xpath expr="//form[1]/sheet[1]/notebook[1]/page[@name='operations']/field[@name='move_ids_without_package']/tree[1]/field[@name='product_uom_qty']" position="before">
+                    <field name="r_volume" optional="show" string='Vol(m³)'/>
+                    <field name="r_weight" optional="show" string='Poid(T)'/>
+                </xpath>
+                <xpath expr="//form[1]/sheet[1]/notebook[1]/page[@name='operations']/field[@name='move_ids_without_package']/tree[1]/field[@name='product_uom_qty']" position="after">
+                    <field name="sale_line_id" optional="hide"/>
+                    <field name="tarif_maritime" optional="hide"/>
+                    <field name="tarif_terrestre" optional="hide"/>
+                    <field name="tarif_rpa" optional="hide"/>
+                </xpath>
+                <xpath expr="//form[1]/sheet[1]/notebook[1]/page[@name='operations']/field[@name='move_ids_without_package']/tree[1]/field[@name='product_uom']" position="attributes">
+                    <attribute name="attrs">{"readonly": [["state","!=","draft"],["additional","=",False]]}</attribute>
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+            </field></record>
+</data></odoo>

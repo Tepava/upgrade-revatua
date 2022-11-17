@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo><data>
+        <template id="revatua_connaissement">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="o">
+                    <t t-call="web.external_layout">
+                        <t t-set="o" t-value="o.with_context(lang=o.partner_id.lang)" />
+                        <t t-set="partner" t-value="o.partner_id or (o.move_lines and o.move_lines[0].partner_id) or False"/>
+
+                        <t>
+                            <div class="row">
+                                <div class="col-6" name="div_incoming_address"><!--t-options='{&quot;phone_icons&quot;: True}-->
+                                    <span><strong>Expéditeur:</strong></span>
+                                    <div t-field="o.contact_expediteur.name"/>
+                                    <div>
+                                        <span>Tél:</span>
+                                        <t t-if="o.tel_expediteur">
+                                            <span t-field="o.tel_expediteur"/>
+                                        </t>
+                                        <t t-if="not o.tel_expediteur and o.mobil_expediteur">
+                                            <span t-field="o.mobil_expediteur"/>
+                                        </t>  
+                                    </div>
+                                    <div>
+                                        <span t-field="o.ile_recup"/>
+                                        <span> - </span>
+                                        <span t-field="o.commune_recup"/>
+                                    </div>
+                                </div>
+                                <div class="col-6" name="div_incoming_address">
+                                    <span><strong>Destinataire:</strong></span>
+                                    <div t-field="o.contact_expediteur.name"/>
+                                    <div>
+                                        <span>Tél:</span>
+                                        <t t-if="o.tel_dest">
+                                            <span t-field="o.tel_dest"/>
+                                        </t>
+                                        <t t-if="not o.tel_dest and o.dest">
+                                            <span t-field="o.dest"/>
+                                        </t>  
+                                    </div>
+                                    <div>
+                                        <span t-field="o.ile_dest"/>
+                                        <span> - </span>
+                                        <span t-field="o.commune_dest"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+
+                        <div class="page" style="padding-top:40px">
+                            <h2>
+                                <div t-if="o.origin" name="div_origin">
+                                    <span>CONNAISSEMENT N°</span>
+                                    <span t-field="o.origin"/>
+                                </div>
+                            </h2>
+                            <div class="row mt32 mb32">
+                                <div class="col-4" name="div_origin">
+                                    <strong>Livraison:</strong>
+                                    <p t-field="o.name"/>
+                                </div>
+                                <div class="col-4" name="div_origin">
+                                    <strong>Affaire suivie par:</strong>
+                                    <p>Mélissa PRUD'HOMME</p>
+                                </div>
+                                <div t-if="o.travel_date" class="col-4" name="div_origin">
+                                    <strong>Date de voyage:</strong>
+                                    <p t-esc='o.travel_date'/>
+                                </div>
+                            </div>
+                            <table class="table table-sm" t-if="o.state!='done'" name="stock_move_table">
+                                <thead>
+                                    <tr>
+                                        <th name="th_sm_product"><strong>Article</strong></th>
+                                        <th name="th_sm_product"><strong>Volumes</strong></th>
+                                        <th name="th_sm_product"><strong>Poids</strong></th>
+                                        <th name="th_sm_ordered"><strong>Commandé</strong></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-set="lines" t-value="o.move_lines.filtered(lambda x: x.product_uom_qty)"/>
+                                    <tr t-foreach="lines" t-as="move">
+                                        <td>
+                                            <span t-field="move.product_id"/>
+                                            <p t-if="move.description_picking != move.product_id.name and move.description_picking != move.product_id.display_name">
+                                                <span t-field="move.description_picking"/>
+                                            </p>
+                                        </td>
+                                        <td>
+                                            <span t-field="move.r_volume"/>
+                                            <span>m³</span>
+                                        </td>
+                                        <td>
+                                            <span t-field="move.r_weight"/>
+                                            <span>T</span>
+                                        </td>
+                                        <td>
+                                            <span t-field="move.product_uom_qty"/>
+                                            <span t-field="move.product_uom"/>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <div class="container" style="margin-top:50px">
+                                <div class="row" style="height:25px">
+                                    <div class="col-6 text-center" style="background-color:#bc0d1b; border:1px solid black;">
+                                        <strong>Observation Transporteur</strong>
+                                    </div>
+                                    <div class="col-6 text-center" style="background-color:#bc0d1b; border:1px solid black; ">
+                                        <strong>Observation Client</strong>
+                                    </div>
+                                </div>
+                                <div class="row" style="height:85px">
+                                    <div class="col-6 text-center" style="border:1px solid black;">
+                                        <p style="color:#c9ccd2; padding-top:30px"><i>Si aucune mention, rien à signaler</i></p>
+                                    </div>
+                                    <div class="col-6 text-center" style="border:1px solid black;">
+                                        <p style="color:#c9ccd2; padding-top:30px"><i>Si aucune mention, rien à signaler</i></p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="container" style="padding-top:50px">
+                                <div class="row">
+                                    <div class="col-6" style="border:1px solid #b9bbbf;">
+                                        <span style=""><strong style="font-size:15px">Coordonée bancaires</strong></span><br></br>
+                                        <hr style="padding: 0 !important;margin: 0 !important;"></hr>
+                                        <div class="row" style="font-size:12px;">
+                                            <div class="col-6">
+                                                <span>Banque</span><br></br>
+                                                <span>Code Banque</span><br></br>
+                                                <span>Code Guichet</span><br></br>
+                                                <span>N° Compte</span><br></br>
+                                                <span>Clé RIB</span><br></br>
+                                            </div>
+                                            <div class="col-6">
+                                                <span>Banque de Polynésie</span><br></br>
+                                                <span>12149</span><br></br>
+                                                <span>06730</span><br></br>
+                                                <span>00420301012</span><br></br>
+                                                <span>86</span><br></br>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-center" style="width:1100px;position:absolute;top:1260px; page-break-inside: avoid;">
+                            <div class="row" >
+                                <div class="col-6">
+                                    <p style="font-size:17px; line-height : 2px;"><strong>Mélissa Prud'Homme - Assistante transport</strong></p>
+                                    <p style="font-size:15px; line-height : 1px;">Tél : 40 50 57 93 | Vini : 87 77 25 04</p>
+                                    <p style="font-size:15px; line-height : 1px;">Email : transport@aremiti.net</p>
+                                </div>
+                                <div class="col-6">
+                                    <p style="font-size:17px; line-height : 2px;"><strong>Hokini PICARD Responsable Transport &amp; Logistique</strong></p>
+                                    <p style="font-size:15px; line-height : 1px;">Tél : 40 50 57 93 | Fax : 40 43 61 37 | Vini: 87 74 39 40</p>
+                                    <p style="font-size:15px; line-height : 1px;">Email : transport@aremiti.net</p>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </t>
+            </t>
+        </template>
+</data></odoo>

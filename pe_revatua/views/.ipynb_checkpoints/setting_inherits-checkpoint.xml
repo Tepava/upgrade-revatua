@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo><data>
+    
+        <record id="res_config_settings_views_revatua" model="ir.ui.view">
+            <field name="name">res.config.settings.revatua</field>
+            <field name="model">res.config.settings</field>
+            <field name="inherit_id" ref="sale.res_config_settings_view_form" />
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='group_auto_done_setting']/../.." position="after">
+                    <div class="col-12 col-lg-6 o_setting_box">
+                        <div class="o_setting_left_pane">
+                            <field name="revatua_ck" />
+                        </div>
+                        <div class="o_setting_right_pane">
+                            <label for="revatua_ck" />
+                            <span class="fa fa-lg fa-building-o" title="Values set here are company-specific." groups="base.group_multi_company"/>
+                            <div class="text-muted">
+                                Si coché débloque les fonctionnalité d'intégration Revatua
+                            </div>
+                        </div>
+                    </div>
+                </xpath>
+            </field>
+        </record>
+
+</data></odoo>
