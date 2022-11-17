@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo><data>
+    
+    <!-- list -->
+        <record model="ir.ui.view" id="contact_commune_list">
+            <field name="name">contact.commune.list</field>
+            <field name="model">res.commune</field>
+            <field name="arch" type="xml">
+                <tree string="Communes">
+                    <field name="sequence" widget="handle"/>
+                    <field name="name"/>
+                    <field name="ile_id"/>
+                </tree>
+            </field>
+        </record>
+    <!-- form -->
+        <record model="ir.ui.view" id="contact_commune_form">
+            <field name="name">contact.commune.form</field>
+            <field name="model">res.commune</field>
+            <field name="arch" type="xml">
+                <form string="Commune">
+                    <sheet>
+                        <group string="Information">
+                            <field name="name"/>
+                            <field name="ile_id" domain='[["country_id.code","=","PF"]]'/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+</data></odoo>
