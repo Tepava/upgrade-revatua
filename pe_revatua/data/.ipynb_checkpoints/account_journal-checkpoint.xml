@@ -4,7 +4,7 @@
         <record id="revatua_adm_journal" model="account.journal">
             <field name="name">Facture ADM</field>
             <field name="type">sale</field>
-            <field name="company_id" eval="2"/>
+<!--             <field name="company_id" eval="2"/> -->
             <field name="code">ADM</field>
         </record>
 </data></odoo>

@@ -9,7 +9,7 @@ class ContactCommune(models.Model):
     
     name = fields.Char(string='Nom')
     sequence = fields.Integer(default=10)
-    ile_id = fields.Many2one(string='Île/Archipel', comodel_name='res.country.state', required=True, default=1384)
+    ile_id = fields.Many2one(string='Île/Archipel', comodel_name='res.country.state', required=True)
 
 class ResCountryStateInherit(models.Model):
     _inherit = "res.country.state"

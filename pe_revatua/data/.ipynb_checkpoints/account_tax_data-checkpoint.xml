@@ -15,7 +15,7 @@
             <field name="amount_type">fixed</field>
             <field name="amount">0</field>
             <field name ="is_base_affected" eval="False"/>
-            <field name="company_id" eval="2"/>
+<!--             <field name="company_id" eval="2"/> -->
         </record> 
     
 </data></odoo>

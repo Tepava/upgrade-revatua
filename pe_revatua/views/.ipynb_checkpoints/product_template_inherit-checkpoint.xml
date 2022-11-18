@@ -29,18 +29,20 @@
                             <field name="tarif_normal" class="oe_inline" widget='monetary'/>
                             <field name="tarif_minimum" class="oe_inline" widget='monetary'/>
                         </group>
-                        <group string="Maritime">
-                            <field name="tarif_maritime" class="oe_inline" widget='monetary'/>
-                            <field name="tarif_minimum_maritime" class="oe_inline" widget='monetary'/>
-                        </group>
-                        <group string="Terrestre">
-                            <field name="tarif_terrestre" class="oe_inline" widget='monetary'/>
-                            <field name="tarif_minimum_terrestre" class="oe_inline" widget='monetary'/>
-                        </group>
                         <group string="RPA">
                             <field name="tarif_rpa" class="oe_inline" widget='monetary'/>
                             <field name="tarif_minimum_rpa" class="oe_inline" widget='monetary'/>
                             <field name="check_adm" invisible="1"/>
+                        </group>
+                        <group string="Terrestre">
+                            <field name="ratio_terrestre" widget="percentage" force_save="1"/>
+                            <field name="tarif_terrestre" class="oe_inline" widget='monetary'/>
+                            <field name="tarif_minimum_terrestre" class="oe_inline" widget='monetary'/>
+                        </group>
+                        <group string="Maritime">
+                            <field name="ratio_maritime" widget="percentage" force_save="1"/>
+                            <field name="tarif_maritime" class="oe_inline" widget='monetary'/>
+                            <field name="tarif_minimum_maritime" class="oe_inline" widget='monetary'/>
                         </group>
                     </group>
                 </xpath>

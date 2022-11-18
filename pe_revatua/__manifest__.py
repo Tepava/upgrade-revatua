@@ -9,7 +9,7 @@
     "license": "LGPL-3",
     "application": False,
     "installable": True,
-    "depends": ['account','stock','purchase','sale_management','pe_commune_ile'],
+    "depends": ['sale','sale_stock','sale_management','account','account_accountant','stock','purchase','pe_commune_ile'],
     "data": [
         "security/res_groups.xml",
         "security/ir.model.access.csv",
