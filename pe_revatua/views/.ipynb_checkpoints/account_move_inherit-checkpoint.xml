@@ -25,6 +25,16 @@
             
             <!-- Ajout des champs Maritime/Terrestre/RPA -->
             <xpath expr="//form[1]/sheet[1]/notebook[1]/page[1]/field[@name='invoice_line_ids']/tree[1]/field[@name='price_subtotal']" position="after">
+                <!-- Invisible -->
+                <field name="base_rpa" optional="hide"/>
+                <field name="tarif_minimum_rpa" optional="hide"/>
+                <field name="base_maritime" optional="hide"/>
+                <field name="tarif_minimum_maritime" optional="hide"/>
+                <field name="base_terrestre" optional="hide"/>
+                <field name="tarif_minimum_terrestre" optional="hide"/>
+                <field name="tarif_minimum" optional="hide"/>
+                <field name="check_adm" optional="hide"/>
+                <!-- Afficher -->
                 <field name="tarif_terrestre" sum="Terrestre" digits="[42,0]" optional="show"/>
                 <field name="tarif_maritime" sum="Maritime" digits="[42,0]" optional="show"/>
                 <field name="tarif_rpa" sum="RPA" digits="[42,0]" optional="show"/>
@@ -40,9 +50,17 @@
             <xpath expr="//form[1]/sheet[1]/notebook[1]/page[2]/field[@name='line_ids']/tree[1]/field[@name='account_id']" position="after">
                 <field name="r_volume" optional="hide"/>
                 <field name="r_weight" optional="hide"/>
-                <field name="tarif_rpa" optional="hide"/>
-                <field name="tarif_terrestre" optional="hide"/>
+                <field name="base_rpa" optional="hide"/>
+                <field name="tarif_minimum_rpa" optional="hide"/>
+                <field name="base_maritime" optional="hide"/>
                 <field name="tarif_maritime" optional="hide"/>
+                <field name="tarif_minimum_maritime" optional="hide"/>
+                <field name="base_terrestre" optional="hide"/>
+                <field name="tarif_terrestre" optional="hide"/>
+                <field name="tarif_minimum_terrestre" optional="hide"/>
+                <field name="tarif_minimum" optional="hide"/>
+                <field name="check_adm" optional="hide"/>
+                <field name="tarif_rpa" optional="hide"/>
             </xpath>
         <!-- Form -->
             <xpath expr="//form[1]/sheet[1]/notebook[1]/page[1]/group[1]/group[1]/field[@name='narration']" position="after">

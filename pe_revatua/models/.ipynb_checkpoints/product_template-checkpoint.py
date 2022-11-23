@@ -48,6 +48,15 @@ class ProductTemplateInherit(models.Model):
     tarif_terrestre = fields.Monetary(string='Tarif terrestre', default=0, readonly=False)
     tarif_minimum_terrestre = fields.Monetary(string='Tarif minimum terrestre', default=0)
     
+    # Création de l'article par société
+    @api.model_create_multi
+    def create(self, vals_list):
+        _logger.error('vals : %s | soc_id : %s' % (vals_list,self.env.company.id))
+        for vals in vals_list:
+            if self.env.company and not vals['company_id']:
+                vals['company_id'] = self.env.company.id
+        return super().create(vals_list)
+    
     def _compute_ratio_ter_mer(self, tarif_ter , tarif_normal):
         if tarif_ter and tarif_normal:
             # Ratio terrestre = tarif terrestre / tarif normal
@@ -63,6 +72,8 @@ class ProductTemplateInherit(models.Model):
             for record in self:
                 # Si tarif normal existe on initialise tout les champs qui suivent (prix de vente,tarif terrester/maritime, RPA)
                 if record.tarif_normal:
+                    record.uom_id = self.env.ref('pe_revatua.revatua_udm_mcube')
+                    record.uom_po_id = self.env.ref('pe_revatua.revatua_udm_mcube')
                     record.tarif_terrestre = record.tarif_normal * round(record.ratio_terrestre,2)
                     record.tarif_maritime = record.tarif_normal * round(record.ratio_maritime,2)
                     record.tarif_rpa = 100
@@ -150,9 +161,27 @@ class ProductTemplateInherit(models.Model):
                     raise UserError("Le prix minimum maritime ne peux pas être supérieur au prix normal maritime")
                 if record.tarif_minimum_terrestre and record.tarif_minimum_terrestre > record.tarif_terrestre:
                     raise UserError("Le prix minimum terrestre ne peux pas être supérieur au prix normal terrestre")
+                # Calcul des part minimum maritime
+                if record.tarif_minimum_terrestre and not record.tarif_minimum_maritime:
+                    # Si tarif minimum n'existe pas
+                    if not record.tarif_minimum:
+                        record.tarif_minimum = round(record.tarif_minimum_terrestre / record.ratio_terrestre,2)
+                        record.tarif_minimum_maritime = round(record.tarif_minimum_terrestre / record.ratio_terrestre,2) * round(record.ratio_maritime,2)
+                    else:
+                        record.tarif_minimum_maritime = record.tarif_minimum * round(record.ratio_maritime,2)
+                # Calcul des part minimum terrestre
+                elif not record.tarif_minimum_terrestre and record.tarif_minimum_maritime:
+                    # Si tarif minimum n'existe pas
+                    if not record.tarif_minimum:
+                        record.tarif_minimum = round(record.tarif_minimum_maritime / record.ratio_maritime,2)
+                        record.tarif_minimum_terrestre = round(record.tarif_minimum_maritime / record.ratio_maritime,2) * round(record.ratio_maritime,2)
+                    else:
+                        record.tarif_minimum_terrestre = record.tarif_minimum * round(record.ratio_terrestre,2)
+                else:
+                    record.tarif_minimum = record.tarif_minimum_terrestre + record.tarif_minimum_maritime
         else:
             _logger.error('Revatua not activate : product_template.py -> _onchange_minimum_tarif')
-                
+
     # Calcul de la tax sur le TTC de l'article
     def _construct_tax_string(self, price):
         # Override #
@@ -258,7 +287,7 @@ class ProductProductInherit(models.Model):
             _logger.error('Revatua not activate : product_template.py -> _onchange_product_tarif_maritime')
         
         
-    # Exécute la méthode de calcul du template pour recalculer les minimum du product
+    # Exécute la méthode de calcul du template pour recalculer les minimum du product (voir si fonctionnelles)
     @api.onchange('tarif_minimum_maritime','tarif_minimum_terrestre')
     def _onchange_product_minimum_tarif(self):
         for record in self:

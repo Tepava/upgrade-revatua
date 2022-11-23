@@ -31,6 +31,7 @@ class AccountMoveInherit(models.Model):
     sum_adm = fields.Monetary(string="Montant ADM", store=True, help="La part qui sera payé par l'administration")
     sum_customer = fields.Monetary(string="Montant Client", store=True, help="La part qui sera payé par le client")
     
+    # Récupération d'une ligne pour la facture global ADM
     def _add_move_line(self, sequence=1):
         self.ensure_one()
         title = str(self.name)+' - '+str(self.invoice_partner_display_name)
@@ -49,9 +50,32 @@ class AccountMoveInherit(models.Model):
             'tarif_rpa': 0,
             'price_total': 0,
         }
-        _logger.error('Seq : %s | Ligne: %s' % (sequence,vals))
         return vals
-        
+    
+    # Calcul des parts client et ADM
+    @api.onchange('invoice_line_ids')
+    def _total_tarif(self):
+        # --- Check if revatua is activate ---#
+        if self.env.company.revatua_ck:
+            sum_customer = 0
+            sum_adm = 0
+            for order in self:
+                # Sum tarif_terrestre and maritime
+                for line in order.invoice_line_ids:
+                    if line.check_adm:
+                        sum_adm += line.tarif_maritime + line.tarif_rpa
+                        sum_customer += line.price_total - (line.tarif_maritime + line.tarif_rpa)
+                    else:
+                        sum_customer += line.price_total
+                # Write fields values car les champs sont en readonly
+                order.write({
+                    'sum_adm' : sum_adm,
+                    'sum_customer' : sum_customer,
+                })
+        else:
+            _logger.error('Revatua not activate : sale_order.py -> _total_tarif')
+    
+    # Calculs de taxes au chargement du documents
     def _recompute_tax_lines(self, recompute_tax_base_amount=False, tax_rep_lines_to_recompute=None):
         """ Compute the dynamic tax lines of the journal entry.
 
@@ -88,20 +112,35 @@ class AccountMoveInherit(models.Model):
                 tax_type = base_line.tax_ids[0].type_tax_use if base_line.tax_ids else None
                 is_refund = (tax_type == 'sale' and base_line.debit) or (tax_type == 'purchase' and base_line.credit)
                 price_unit_wo_discount = base_line.amount_currency
-
-    # -----Ajout du discount et du terrestre pour simplifier le calculs des taxes (car taxes s'applique uniquement à la part terrestre)
-            return base_line.tax_ids._origin.with_context(force_sign=move._get_tax_force_sign()).compute_all(
-                price_unit_wo_discount,
-                currency=base_line.currency_id,
-                quantity=quantity,
-                product=base_line.product_id,
-                partner=base_line.partner_id,
-                is_refund=is_refund,
-                handle_price_include=handle_price_include,
-                include_caba_tags=move.always_tax_exigible,
-                discount = base_line.discount,
-                terrestre = base_line.tarif_terrestre
-            )
+            
+# -----Ajout du discount et du terrestre pour simplifier le calculs des taxes (car taxes s'applique uniquement à la part terrestre)
+            if self.env.company.revatua_ck:
+                return base_line.tax_ids._origin.with_context(force_sign=move._get_tax_force_sign()).compute_all(
+                    price_unit_wo_discount,
+                    currency=base_line.currency_id,
+                    quantity=quantity,
+                    product=base_line.product_id,
+                    partner=base_line.partner_id,
+                    is_refund=is_refund,
+                    handle_price_include=handle_price_include,
+                    include_caba_tags=move.always_tax_exigible,
+                    discount = base_line.discount,
+                    terrestre = base_line.tarif_terrestre,
+                    maritime = base_line.tarif_maritime,
+                    adm = move.is_adm_invoice,
+                )
+            else:
+                return base_line.tax_ids._origin.with_context(force_sign=move._get_tax_force_sign()).compute_all(
+                    price_unit_wo_discount,
+                    currency=base_line.currency_id,
+                    quantity=quantity,
+                    product=base_line.product_id,
+                    partner=base_line.partner_id,
+                    is_refund=is_refund,
+                    handle_price_include=handle_price_include,
+                    include_caba_tags=move.always_tax_exigible,
+                    discount = base_line.discount,
+                )
 
         taxes_map = {}
 
@@ -226,36 +265,3 @@ class AccountMoveInherit(models.Model):
 
             if in_draft_mode:
                 taxes_map_entry['tax_line'].update(taxes_map_entry['tax_line']._get_fields_onchange_balance(force_computation=True))
-                
-# ------------------------------------------------------------------------------------------------- #        
-# ------------------------------------------ account_edi ------------------------------------------ # 
-# ------------------------------------------------------------------------------------------------- #
-
-    def compute_invoice_lines_tax_values_dict_from_compute_all(invoice_lines):
-            invoice_lines_tax_values_dict = {}
-            sign = -1 if self.is_inbound() else 1
-            for invoice_line in invoice_lines:
-    # -----Ajout du discount et du terrestre pour simplifier le calculs des taxes (car taxes s'applique uniquement à la part terrestre)
-                taxes_res = invoice_line.tax_ids.compute_all(
-                    invoice_line.price_unit * (1 - (invoice_line.discount / 100.0)),
-                    currency=invoice_line.currency_id,
-                    quantity=invoice_line.quantity,
-                    product=invoice_line.product_id,
-                    partner=invoice_line.partner_id,
-                    is_refund=invoice_line.move_id.move_type in ('in_refund', 'out_refund'),
-                    discount = invoice_line.discount,
-                    terrestre = invoice_line.tarif_terrestre,
-                )
-                invoice_lines_tax_values_dict[invoice_line] = []
-                rate = abs(invoice_line.balance) / abs(invoice_line.amount_currency) if invoice_line.amount_currency else 0.0
-                for tax_res in taxes_res['taxes']:
-                    invoice_lines_tax_values_dict[invoice_line].append({
-                        'base_line_id': invoice_line,
-                        'tax_id': self.env['account.tax'].browse(tax_res['id']),
-                        'tax_repartition_line_id': self.env['account.tax.repartition.line'].browse(tax_res['tax_repartition_line_id']),
-                        'base_amount': sign * invoice_line.company_currency_id.round(tax_res['base'] * rate),
-                        'tax_amount': sign * invoice_line.company_currency_id.round(tax_res['amount'] * rate),
-                        'base_amount_currency': sign * tax_res['base'],
-                        'tax_amount_currency': sign * tax_res['amount'],
-                    })
-            return invoice_lines_tax_values_dict

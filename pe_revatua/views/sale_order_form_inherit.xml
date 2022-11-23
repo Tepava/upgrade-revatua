@@ -15,7 +15,7 @@
                 </xpath>
                 <!-- Client unituqment aremiti -->
                 <xpath expr="//field[@name='partner_id']" position="replace">
-                    <field name="partner_id" widget="res_partner_many2one" context="{'res_partner_search_mode': 'customer', 'show_address': 1, 'show_vat': True}" domain="[('company_id','=',2)]" options='{"always_reload":true,"no_create":true}'/>
+                    <field name="partner_id" widget="res_partner_many2one" context="{'res_partner_search_mode': 'customer', 'show_address': 1, 'show_vat': True}" domain="[('company_id','=',allowed_company_ids[0])]" options='{"always_reload":true,"no_create":true}'/>
                 </xpath>
                 <!-- champs custom revatua -->
                 <xpath expr="//group[@name='sale_header']" position="after">
@@ -24,15 +24,15 @@
                             <field name="commune_recup"/>
                             <field name="ile_recup"/>
                             <field name="contact_expediteur"/>
-                            <field name="tel_expediteur" attrs="{&quot;invisible&quot;: [&quot;&amp;&quot;,[&quot;tel_expediteur&quot;,&quot;=&quot;,False],[&quot;mobil_expediteur&quot;,&quot;!=&quot;,False]]}"/>
-                            <field name="mobil_expediteur" attrs="{&quot;invisible&quot;: [&quot;|&quot;,[&quot;tel_expediteur&quot;,&quot;!=&quot;,False],[&quot;mobil_expediteur&quot;,&quot;=&quot;,False]]}"/>
+                            <field name="tel_expediteur" attrs="{'invisible': ['&amp;',['tel_expediteur','=',False],['mobil_expediteur','!=',False]]}"/>
+                            <field name="mobil_expediteur" attrs="{'invisible': ['|',['tel_expediteur','!=',False],['mobil_expediteur','=',False]]}"/>
                         </group>
                         <group name="lieu_destinataire" string="Destinataire">
                             <field name="commune_dest"/>
                             <field name="ile_dest"/>
                             <field name="contact_dest"/>
-                            <field name="tel_dest" attrs="{&quot;invisible&quot;: [&quot;&amp;&quot;,[&quot;tel_dest&quot;,&quot;=&quot;,False],[&quot;mobil_dest&quot;,&quot;!=&quot;,False]]}"/>
-                            <field name="mobil_dest" attrs="{&quot;invisible&quot;: [&quot;|&quot;,[&quot;tel_dest&quot;,&quot;!=&quot;,False],[&quot;mobil_dest&quot;,&quot;=&quot;,False]]}"/>
+                            <field name="tel_dest" attrs="{'invisible': ['&amp;',['tel_dest','=',False],['mobil_dest','!=',False]]}"/>
+                            <field name="mobil_dest" attrs="{'invisible': ['|',['tel_dest','!=',False],['mobil_dest','=',False]]}"/>
                         </group>
                     </group>
                 </xpath>
@@ -41,7 +41,7 @@
                 <xpath expr="//page[@name='order_lines']/field[@name='order_line']/tree[1]/field[@name='product_id']" position="replace">
                     <!-- Aremiti -->
                     <field name="product_id" 
-                        domain="[('sale_ok', '=', True),('company_id', '=', 2)]"
+                        domain="[('sale_ok', '=', True),('company_id', '=', 1)]"
                         context="{'partner_id':parent.partner_id, 'quantity':product_uom_qty, 'pricelist':parent.pricelist_id, 'uom':product_uom, 'company_id': parent.company_id}"
                         attrs="{'readonly': [('product_updatable', '=', False)],'required': [('display_type', '=', False)],}"
                         force_save="1"/>
@@ -59,14 +59,14 @@
                 <!-- Champs tarif(terrestre/maritime/rpa) et total + invisible field-->
                 <xpath expr="//page[@name='order_lines']/field[@name='order_line']/tree[1]/field[@name='price_subtotal']" position="after">
                     <!-- Invisible -->
-                    <field name="base_rpa" invisible="1"/>
-                    <field name="tarif_minimum_rpa" invisible="1"/>
-                    <field name="base_maritime" invisible="1"/>
-                    <field name="tarif_minimum_maritime" invisible="1"/>
-                    <field name="base_terrestre" invisible="1"/>
-                    <field name="tarif_minimum_terrestre" invisible="1"/>
-                    <field name="tarif_minimum" invisible="1"/>
-                    <field name="check_adm" invisible="1"/>
+                    <field name="base_rpa" optional="hide"/>
+                    <field name="tarif_minimum_rpa" optional="hide"/>
+                    <field name="base_maritime" optional="hide"/>
+                    <field name="tarif_minimum_maritime" optional="hide"/>
+                    <field name="base_terrestre" optional="hide"/>
+                    <field name="tarif_minimum_terrestre" optional="hide"/>
+                    <field name="tarif_minimum" optional="hide"/>
+                    <field name="check_adm" optional="hide"/>
                     <!-- Afficher -->
                     <field name="tarif_terrestre" sum="Terrestre" digits="[42,0]" optional="show"/>
                     <field name="tarif_maritime" sum="Maritime" digits="[42,0]" optional="show"/>
@@ -77,8 +77,7 @@
                 <!-- Affichage sur les autres list view lié à sale.order.line sinon à la sauvegarde du devis les données sont 
                 supprimer comportement de base odoo qui doit récupérer 2fois le formulaire un avec donnée remplis et l'autre 
                 non remplis il compile le tout est finis par avoir des données à blanc -->
-                <xpath expr="//page[@name='optional_products']/field[@name='sale_order_option_ids']/tree[1]/field[@name='sequence']" position="after">
-                    <!-- Invisible -->
+<!--                 <xpath expr="//page[@name='optional_products']/field[@name='sale_order_option_ids']/tree[1]/field[@name='sequence']" position="after">
                     <field name="base_rpa" invisible="1"/>
                     <field name="tarif_minimum_rpa" invisible="1"/>
                     <field name="base_maritime" invisible="1"/>
@@ -90,7 +89,7 @@
                     <field name="tarif_maritime" invisible="1"/>
                     <field name="tarif_rpa" invisible="1"/>
                     <field name="check_adm" invisible="1"/>
-                </xpath>
+                </xpath> -->
                 
                 <!-- Remplacer l'uom de base par un fictif pour information -->
                 <xpath expr="//page[@name='order_lines']/field[@name='order_line']/tree[1]/field[@name='product_uom']" position="after">
@@ -115,11 +114,11 @@
                             <tbody>
                                 <tr>
                                     <td style="width:200px"><b>Montant Client :</b></td>
-                                    <td style="width:100px;text-align:right !important;"><b><field name="sum_customer" attrs='{"readonly": ["|",["state","=","done"],["state","=","sale"]]}'/></b></td>
+                                    <td style="width:100px;text-align:right !important;"><b><field name="sum_customer" readonly="1" force_save="1"/></b></td>
                                 </tr>
                                 <tr>
                                     <td style="width:200px"><b>Montant ADM :</b></td>
-                                    <td style="width:100px;text-align:right !important;"><b><field name="sum_adm" attrs='{"readonly": [["state","=","done"]]}'/></b></td>
+                                    <td style="width:100px;text-align:right !important;"><b><field name="sum_adm" readonly="1" force_save="1"/></b></td>
                                 </tr>
                             </tbody>
                         </table>

@@ -12,7 +12,7 @@
             <field name="name">ref</field>
             <field name="uom_type">reference</field>
             <field name="factor_inv" eval='1'/>
-            <field name="rounding" eval='0.01'/>
+            <field name="rounding" eval='0.001'/>
         </record>
     
         <!-- m³ -->
@@ -21,7 +21,7 @@
             <field name="name">m3</field>
             <field name="uom_type">bigger</field>
             <field name="factor_inv" eval='1000'/>
-            <field name="rounding" eval='0.01'/>
+            <field name="rounding" eval='0.001'/>
         </record>
     
         <!-- T -->
@@ -30,7 +30,7 @@
             <field name="name">T</field>
             <field name="uom_type">bigger</field>
             <field name="factor_inv" eval='1000'/>
-            <field name="rounding" eval='0.01'/>
+            <field name="rounding" eval='0.001'/>
         </record>
     
         <!-- T/m³ -->
@@ -39,7 +39,7 @@
             <field name="name">T/m³</field>
             <field name="uom_type">bigger</field>
             <field name="factor_inv" eval='1000'/>
-            <field name="rounding" eval='0.01'/>
+            <field name="rounding" eval='0.001'/>
         </record>
     
 </data></odoo>

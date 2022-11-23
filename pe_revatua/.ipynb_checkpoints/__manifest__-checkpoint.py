@@ -2,14 +2,14 @@
 {
     "name": "Revatua",
     "summary": "Ajout des fonctionnalité en liens à Revatua (création de connaissement, visualisation des planing bateau, etc...)",
-    "version": "15.1.0.8.9",
+    "version": "15.1.0.9.1",
     "category": "Pacific-ERP",
     "author": "Mehdi Tepava",
     'website': "https://www.pacific-erp.com/",
     "license": "LGPL-3",
     "application": False,
     "installable": True,
-    "depends": ['sale','sale_stock','sale_management','account','account_accountant','stock','purchase','pe_commune_ile'],
+    "depends": ['sale','sale_stock','sale_management','account','account_accountant','stock','purchase','pe_commune_ile','account_edi'],
     "data": [
         "security/res_groups.xml",
         "security/ir.model.access.csv",

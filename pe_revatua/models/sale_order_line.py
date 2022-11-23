@@ -31,7 +31,7 @@ class SaleOrderLineInherit(models.Model):
     check_adm = fields.Boolean(string='Payé par ADM', store=True)
 
 # --------------------------------- Modification des méthode de calculs des taxes et sous totaux --------------------------------- #
-
+    # Override méthode de compute des taxes pour ajouter le montant terrestre
     @api.depends('product_uom_qty', 'discount', 'price_unit', 'tax_id')
     def _compute_amount(self):
         """
@@ -39,9 +39,8 @@ class SaleOrderLineInherit(models.Model):
         """
         for line in self:
             price = line.price_unit * (1 - (line.discount or 0.0) / 100.0)
-            _logger.error('so_line : %s' % line.tarif_terrestre)
             # Ajout du discount et du terrestre pour simplifier le calculs des taxes (car taxes s'applique uniquement à la part terrestre)
-            taxes = line.tax_id.compute_all(price, line.order_id.currency_id, line.product_uom_qty, product=line.product_id, partner=line.order_id.partner_shipping_id, discount=line.discount, terrestre=line.tarif_terrestre)
+            taxes = line.tax_id.compute_all(price, line.order_id.currency_id, line.product_uom_qty, product=line.product_id, partner=line.order_id.partner_shipping_id, discount=line.discount, terrestre=line.tarif_terrestre, maritime=line.tarif_maritime)
             line.update({
                 'price_tax': sum(t.get('amount', 0.0) for t in taxes.get('taxes', [])),
                 'price_total': taxes['total_included'],
@@ -50,6 +49,7 @@ class SaleOrderLineInherit(models.Model):
             if self.env.context.get('import_file', False) and not self.env.user.user_has_groups('account.group_account_manager'):
                 line.tax_id.invalidate_cache(['invoice_repartition_line_ids'], [line.tax_id.id])
     
+    # Override méthode des taxes pour la facture
     @api.depends('state', 'price_reduce', 'product_id', 'untaxed_amount_invoiced', 'qty_delivered', 'product_uom_qty')
     def _compute_untaxed_amount_to_invoice(self):
         """ Total of remaining amount to invoice on the sale order line (taxes excl.) as
@@ -76,13 +76,14 @@ class SaleOrderLineInherit(models.Model):
                     # has to be called to retrieve the subtotal without them.
                     # `price_reduce_taxexcl` cannot be used as it is computed from `price_subtotal` field. (see upper Note)
                     
-                    # -----Ajout du discount et du terrestre pour simplifier le calculs des taxes (car taxes s'applique uniquement à la part terrestre)
+    # -----Ajout du discount et du terrestre pour simplifier le calculs des taxes (car taxes s'applique uniquement à la part terrestre)
                     price_subtotal = line.tax_id.compute_all(
                         price_reduce,
                         currency=line.order_id.currency_id,
                         quantity=uom_qty_to_consider,
                         product=line.product_id,
                         terrestre = line.tarif_terrestre,
+                        maritime = line.tarif_maritime,
                         partner=line.order_id.partner_shipping_id)['total_excluded']
                 inv_lines = line._get_invoice_lines()
                 if any(inv_lines.mapped(lambda l: l.discount != line.discount)):
@@ -91,6 +92,7 @@ class SaleOrderLineInherit(models.Model):
                     amount = 0
                     for l in inv_lines:
                         if len(l.tax_ids.filtered(lambda tax: tax.price_include)) > 0:
+    # -----Ajout du discount et du terrestre pour simplifier le calculs des taxes (car taxes s'applique uniquement à la part terrestre)
                             amount += l.tax_ids.compute_all(l.currency_id._convert(l.price_unit, line.currency_id, line.company_id, l.date or fields.Date.today(), round=False) * l.quantity,terrestre=line.tarif_terrestre)['total_excluded']
                         else:
                             amount += l.currency_id._convert(l.price_unit, line.currency_id, line.company_id, l.date or fields.Date.today(), round=False) * l.quantity
@@ -111,20 +113,20 @@ class SaleOrderLineInherit(models.Model):
         res = super(SaleOrderLineInherit, self).product_id_change()
         # --- Check if revatua is activate ---#
         if self.env.company.revatua_ck:
-            self.tarif_minimum = self.product_id.tarif_minimum
-            self.check_adm = self.product_id.check_adm
-            # Terrestre
-            self.base_terrestre = self.product_id.tarif_terrestre
-            self.tarif_terrestre = self.product_id.tarif_terrestre
-            self.tarif_minimum_terrestre = self.product_id.tarif_minimum_terrestre
-            # Maritime
-            self.base_maritime = self.product_id.tarif_maritime
-            self.tarif_maritime = self.product_id.tarif_maritime
-            self.tarif_minimum_maritime = self.product_id.tarif_minimum_maritime
-            # RPA
-            self.base_rpa = self.product_id.tarif_rpa
-            self.tarif_rpa = self.product_id.tarif_rpa
-            self.tarif_minimum_rpa = self.product_id.tarif_minimum_rpa
+            vals = {
+                'tarif_minimum' : self.product_id.tarif_minimum,
+                'check_adm' : self.product_id.check_adm,
+                'base_terrestre' : self.product_id.tarif_terrestre,
+                'tarif_terrestre' : self.product_id.tarif_terrestre,
+                'tarif_minimum_terrestre' : self.product_id.tarif_minimum_terrestre,
+                'base_maritime' : self.product_id.tarif_maritime,
+                'tarif_maritime' : self.product_id.tarif_maritime,
+                'tarif_minimum_maritime' : self.product_id.tarif_minimum_maritime,
+                'base_rpa' : self.product_id.tarif_rpa,
+                'tarif_rpa' : self.product_id.tarif_rpa,
+                'tarif_minimum_rpa' : self.product_id.tarif_minimum_rpa,
+            }
+            self.write(vals)
         else:
             _logger.error('Revatua not activate : sale_order_line.py -> product_id_change')
         return res        
@@ -140,7 +142,7 @@ class SaleOrderLineInherit(models.Model):
             t_m3 = self.env['uom.uom'].sudo().search([('name','=','T/m³')])
             # Poid volumétrique
             if self.r_volume and self.r_weight and self.product_id.uom_id.id == m3.id:
-                self.product_uom_qty = (self.r_volume + self.r_weight) / 2
+                self.product_uom_qty = round((self.r_volume + self.r_weight) / 2,3)
                 self.product_uom = t_m3 
             # Tonne
             elif self.r_weight and not self.r_volume:
@@ -156,81 +158,38 @@ class SaleOrderLineInherit(models.Model):
                 self.product_uom = self.product_id.uom_id
         else:
             _logger.error('Revatua not activate : sale_order_line.py -> _onchange_update_qty')
-            
-#     @api.onchange('product_uom_qty')
-#     def _compute_poid_volumetrique(self):
-#         # --- Check if revatua is activate ---#
-#         if self.env.company.revatua_ck:
-#             t_m3 = self.env['uom.uom'].sudo().search([('name','=','T/m³')])
-#             if self.product_uom_qty and self.product_id.uom_id.id == t_m3.id and not self.r_weight and not self.r_volume:
-#                 self.r_weight = symphonie
-#                 self.r_volume =
-#         else:
-#             _logger.error('Revatua not activate : sale_order_line.py -> _onchange_update_qty')
 
 # --------------------------------- Calcule des tarif  --------------------------------- #
-
-    @api.onchange('product_packaging_id', 'product_uom', 'product_uom_qty','discount')
-    def _onchange_update_product_packaging_qty(self):
-        ##################
-        #### OVERRIDE ####
-        ##################
-        #Terrestre 60% du prix & maritime 40% du prix
-        res = super(SaleOrderLineInherit, self)._onchange_update_product_packaging_qty()
-        # --- Check if revatua is activate ---#
-        ter_min = False
-        mar_min = False
-        if self.env.company.revatua_ck:
-            # Calcul des part maritime et part terrestre
-            if self.base_terrestre:
-                # Prix mini configurer
-                if self.tarif_minimum_terrestre and (self.product_uom_qty * self.base_terrestre) < self.tarif_minimum_terrestre or self.price_subtotal <= self.tarif_minimum:
-                    self.tarif_terrestre = self.tarif_minimum_terrestre
-                    ter_min = True
-                # Aucun mini configurer
-                else:
-                    self.tarif_terrestre = self.product_uom_qty * self.base_terrestre
-            if self.base_maritime:
-                # Prix mini configurer
-                if self.tarif_minimum_maritime and (self.product_uom_qty * self.base_maritime) < self.tarif_minimum_maritime:
-                    self.tarif_maritime = self.tarif_minimum_maritime
-                    mar_min = True
-                # Aucun mini configurer
-                else:
-                    self.tarif_maritime = self.product_uom_qty * self.base_maritime
-            if self.base_rpa:
-                if self.tarif_minimum_rpa and (self.product_uom_qty * self.base_rpa) < self.tarif_minimum_rpa:
-                    self.tarif_rpa = self.tarif_minimum_rpa
-                else:
-                    self.tarif_rpa = self.product_uom_qty * self.base_rpa
-            # Calcul des remises sur part terrestre et maritime
-            if self.price_subtotal < (self.tarif_terrestre + self.tarif_maritime):
-                if not ter_min:
-                    self.tarif_terrestre = self.price_subtotal - self.tarif_maritime
-                else:
-                    self.tarif_maritime = self.price_subtotal - self.tarif_terrestre
-                    
-            if self.discount:
-                self._compute_discount_terrestre_maritime()
-            
-        else:
-            _logger.error('Revatua not activate : sale_order_line.py -> _onchange_update_product_packaging_qty')
+    # Méthode de calcule pour les tarifs par lignes
+    def _compute_amount_base_revatua(self, base, qty, discount, mini_amount=0):
+        """ Renvoie le montant de la part (terrestre,maritime,rpa) au changement de quantités
+        
+            param float base : Valeur de la base de la part à tester
+            param float qty : la quantités
+            param discount : 1 - (remise/100) -> si remise existant résultat < 0 sinon 1
+            param mini_amount : Minimum que la part peut prendre
+        """
+        res = 0.0
+        # Si minimum et Si part inférieur minimum alors res = minimum
+        if mini_amount and ((base * discount) * qty) < mini_amount:
+            res = mini_amount
+        else :
+            res = (base * discount) * qty
         return res
-
-# --------------------------------- Méthode de calcul des remises sur tarif  --------------------------------- #
-
-    def _compute_discount_terrestre_maritime(self):
-        for line in self:
-            if line.discount:
-                discount = (1 - (line.discount/100))
-                if line.base_terrestre:
-                    line.tarif_terrestre = (line.product_uom_qty * line.base_terrestre) * discount
-                    if line.tarif_terrestre < line.tarif_minimum_terrestre:
-                        line.tarif_terrestre = line.tarif_minimum_terrestre
-                if line.base_maritime:
-                    line.tarif_maritime = (line.product_uom_qty * line.base_maritime) * discount
-                    if line.tarif_maritime < line.tarif_minimum_maritime:
-                        line.tarif_maritime = line.tarif_minimum_maritime
+        
+    # Calcul des part terrestre et maritime selon la quantité et la remise
+    @api.onchange('product_uom_qty','discount')
+    def _compute_revatua_part(self):
+        if self.env.company.revatua_ck:
+            for line in self:
+                # Remise si existant : remise < 1 sinon = 1
+                discount = 1-(line.discount/100)
+                quantity = line.product_uom_qty
+                line.tarif_terrestre = line._compute_amount_base_revatua(line.base_terrestre, quantity, discount, line.tarif_minimum_terrestre)
+                line.tarif_maritime = line._compute_amount_base_revatua(line.base_maritime, quantity, discount, line.tarif_minimum_maritime)
+                line.tarif_rpa = line._compute_amount_base_revatua(line.base_rpa, quantity, discount, line.tarif_minimum_rpa)
+        else:
+            _logger.error('Revatua not activate : sale_order_line.py -> _compute_revatua_part')
         
 # --------------------------------- Méthode de récupération des champs pour le model -> stock.picking  --------------------------------- #
 
@@ -343,29 +302,3 @@ class SaleOrderLineInherit(models.Model):
         else:
             _logger.error('Revatua not activate : sale_order_line.py -> _prepare_invoice_line_non_adm')
         return values  
-
-class SaleOrderOptionInherit(models.Model):
-    _inherit = "sale.order.option"
-    
-    # Tarif de ventes
-    tarif_minimum = fields.Float(string='Prix Minimum', default=0, required=True, store=True)
-    
-    # -- RPA --#
-    base_rpa = fields.Float(string='Base RPA', store=True)
-    tarif_rpa = fields.Float(string='RPA', default=0, store=True)
-    tarif_minimum_rpa = fields.Float(string='Minimum RPA', store=True)
-    
-    # -- Maritime --#
-    base_maritime = fields.Float(string='Base Maritime', store=True)
-    tarif_maritime = fields.Float(string='Maritime', default=0, store=True)
-    tarif_minimum_maritime = fields.Float(string='Minimum Maritime', store=True)
-    
-    # -- Terrestre --#
-    base_terrestre = fields.Float(string='Base Terrestre', store=True)
-    tarif_terrestre = fields.Float(string='Terrestre', default=0, store=True)
-    tarif_minimum_terrestre = fields.Float(string='Minimum Terrestre', store=True)
-    
-    # Calcul & check
-    r_volume = fields.Float(string='Volume Revatua (m³)', store=True)
-    r_weight = fields.Float(string='Volume weight (T)', store=True)
-    check_adm = fields.Boolean(string='Payé par ADM', store=True)

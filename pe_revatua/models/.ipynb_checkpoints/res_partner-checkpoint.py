@@ -9,6 +9,6 @@ class ResPartnerInherit(models.Model):
     
     @api.model
     def create(self, values):
-        if self.env.company.id == 2:
-            values['company_id'] = 2
+        if self.env.company:
+            values['company_id'] = self.env.company.id
         return super().create(values)
