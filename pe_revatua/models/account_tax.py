@@ -12,7 +12,6 @@ class AccountTaxInherit(models.Model):
     
     # Ajout du paramètre terrestre pour le calcul de la taxe
     def _compute_amount(self, base_amount, price_unit, quantity=1.0, product=None, partner=None, invoice=None, terrestre=0):
-        _logger.error('_compute_amount - %s' % self.env.company.revatua_ck)
         #########################
         #### OVERRIDE METHOD ####
         #########################
@@ -77,8 +76,6 @@ class AccountTaxInherit(models.Model):
     
     # Ajout du paramètre discount pour le calcul de la taxe uniquement sur terrestre
     def compute_all(self, price_unit, currency=None, quantity=1.0, product=None, partner=None, is_refund=False, handle_price_include=True, include_caba_tags=False, discount=0.0, terrestre=0, maritime=0, adm=False):
-        # _logger.error('111111111111111111 - compute_all - 111111111111111111')
-        _logger.error('compute_all - %s' % self.env.company.revatua_ck)
         """ Returns all information required to apply taxes (in self + their children in case of a tax group).
             We consider the sequence of the parent for group of taxes.
                 Eg. considering letters as taxes and alphabetic order as sequence :
@@ -292,7 +289,6 @@ class AccountTaxInherit(models.Model):
                         # _logger.error('2.3.2 : %s ' % product.tarif_minimum_terrestre)
                         pv_terrestre = product.tarif_minimum_terrestre
                     total_excluded = currency.round(pv_terrestre + pv_maritime)
-        _logger.error('total_excluded : %s' % total_excluded)
         #========================================================================#
         #=============OVERRIDE=============#
         #==================================#

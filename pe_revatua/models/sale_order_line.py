@@ -302,3 +302,18 @@ class SaleOrderLineInherit(models.Model):
         else:
             _logger.error('Revatua not activate : sale_order_line.py -> _prepare_invoice_line_non_adm')
         return values  
+
+# --------------------------------- Méthodes de récupération des champs pour le model -> stock.rule  --------------------------------- #    
+    # Méthode de récupération des valeurs pour les stocks
+    def _prepare_procurement_values(self, group_id=False):
+        # Override 
+        res = super(SaleOrderLineInherit, self)._prepare_procurement_values(group_id)
+        vals = {
+            'tarif_rpa' : self.tarif_rpa,
+            'tarif_maritime' : self.tarif_maritime,
+            'tarif_terrestre' : self.tarif_terrestre,
+            'r_volume' : self.r_volume,
+            'r_weight' : self.r_weight,
+        }
+        res.update(vals)
+        return res

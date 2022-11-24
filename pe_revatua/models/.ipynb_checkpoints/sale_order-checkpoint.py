@@ -44,10 +44,7 @@ class SaleOrderInherit(models.Model):
                     else:
                         sum_customer += line.price_total
                 # Write fields values car les champs sont en readonly
-                order.write({
-                    'sum_adm' : sum_adm,
-                    'sum_customer' : sum_customer,
-                })
+                order.write({'sum_adm' : sum_adm, 'sum_customer' : sum_customer})
         else:
             _logger.error('Revatua not activate : sale_order.py -> _total_tarif')
             
@@ -363,7 +360,3 @@ class SaleOrderInherit(models.Model):
                 subtype_id=self.env.ref('mail.mt_note').id
             )
         return moves
-    
-    #------------------------------------------------------------------------------------------------------------------------------------------#
-    #                                                    Modification Transfert                                                                #
-    #------------------------------------------------------------------------------------------------------------------------------------------#
